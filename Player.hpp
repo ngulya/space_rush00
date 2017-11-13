@@ -18,6 +18,7 @@ public:
 	int pos_y;
 	int maxx;
 	int maxy;
+	int score;
 	char pship;
 	int hp;
 	int maxHP;
@@ -30,9 +31,10 @@ public:
 	Player(const Player &pl);
 	virtual ~Player();
 	Player &operator=(Player &pl);
-	void takeDamage(int dam);
 	void takeHP(int hp);
-	int doDamage();
+	int takehp();
+	void	print_inf(WINDOW *wwin, int maxy);
+	void	switch_key(int in_char, bool *pause, bool *exit_requested);
 	void change_pos(void);
 	void	set_commet(void);
 	int	change_commet(void);

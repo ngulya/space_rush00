@@ -35,7 +35,7 @@ int 	Game::win_OK(void){
 	y = 0;
 	getmaxyx(TERMINAL, y, x);
 
-	if(maxy + 6 > y || maxx + 1 > x)
+	if(maxy + 2 > y || maxx + 1 > x)
 		return 0;
 	return 1;
 }
@@ -45,7 +45,7 @@ void Game::gameinit(){
 	maxy = 50;
 	maxx = 100;
 
-	win = newwin(maxy + 5, maxx, 0, 0);
+	win = newwin(maxy + 2, maxx, 0, 0);
 	cbreak(); 
 	noecho(); 
 
@@ -76,6 +76,8 @@ void Game::gameinit(){
 
 
  void Game::change_canvas(void){
+
+
 	int i, j;
 	int cX, cY;
 	j = 0;
@@ -120,7 +122,7 @@ void Game::gameinit(){
 			}
 			i++;
 		}
-		usleep(45000);
+		usleep(25000);
 }
 
 int 	Game::get_maxy(){
@@ -184,7 +186,7 @@ int Game::gameover1(){
 }
 
 void Game::run() {
-
+	int fps = 0;
 	gameinit();
 	if (!gamestatus) 
 	{
@@ -193,8 +195,14 @@ void Game::run() {
 		int in_char;
 		bool exit_requested = false;
 		int tmp = 0;
+		bool pause = false;
 			player.set_commet();
 			set_canvas();
+			struct timeval tp;
+			long ts, te;
+			gettimeofday(&tp, NULL);
+			ts = tp.tv_usec;
+			
 			while(true)
 			{
 				if(!win_OK()){
@@ -203,62 +211,54 @@ void Game::run() {
 					exit(1);
 				}
 				in_char = wgetch(win);
-				switch(in_char) {
-					case 'q':
-						exit_requested = true;
-						break;
-					case KEY_UP:
-					case 'w':
-						player.pos.y -= 1;
-						break;
-					case KEY_DOWN:
-					case 's':
-						player.pos.y += 1;
-						break;
-					case KEY_LEFT:
-					case 'a':
-						player.pos.x -= 1;
-						break;
-					case KEY_RIGHT:
-					case 'd':
-						player.pos.x += 1;
-						break;
-					case ' ':
-						player.shoot();
-						break;
-					default:
-						break;
-					}
-				player.change_pos();
-				player.shooting();
-				if(tmp == 3)
+				player.switch_key(in_char, &pause, &exit_requested);
+				if(!pause)
 				{
-					// player.shooting();
-					change_canvas();
-					if(!player.change_commet()){
-						if(gameover1())
+					player.change_pos();
+					player.shooting();
+					if(tmp == 3)
+					{
+						change_canvas();
+						player.score += 1;
+						if(!player.change_commet())
 						{
-							mvwprintw(win, (maxy/2) - 1, (maxx/2) - 5,"%s", "         ");
-							mvwprintw(win, maxy/2, (maxx/2 )- 8, "%s", "                 ");
-							player.pos.x = maxx/2;
-							player.pos.y = 2;
-							player.set_commet();
-							set_canvas();
+							if(gameover1())
+							{
+								mvwprintw(win, (maxy/2) - 1, (maxx/2) - 5,"%s", "         ");
+								mvwprintw(win, maxy/2, (maxx/2 )- 8, "%s", "                 ");
+								player.pos.x = maxx/2;
+								player.pos.y = 2;
+								player.hp = 50;
+								player.set_commet();
+								set_canvas();
+							}
+							else
+							{
+								exit_requested = true;
+								break;
+							}
 						}
-						else
-						{
-							exit_requested = true;
-							break;
-						}
+						tmp = 0;
 					}
-					tmp = 0;
+					tmp++;
+					if(exit_requested){
+						break;
+					}
+					refresh();
+					gettimeofday(&tp, NULL);
+					te = tp.tv_usec;
+					mvwprintw(win, maxy, 1, "%s", "FPS: ");
+					if(te - ts >= 100000)
+					{
+						mvwprintw(win, maxy, 6, "%d", fps);
+						gettimeofday(&tp, NULL);
+						ts = tp.tv_usec ;
+						fps = -1;
+
+					}
+					player.print_inf(win, maxy);
 				}
-				tmp++;
-				if(exit_requested){
-					// run = 0;
-					break;
-				}
-				refresh();
+				fps++;
 			}
 	}
 	closeGame();

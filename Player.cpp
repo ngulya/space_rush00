@@ -8,11 +8,48 @@ Player::Player(int x, int y, WINDOW *w) {
 	pos.x = x/2;
 	maxx = x;
 	maxy = y;
+	score = 0;
 	pos.y = 2;
 	pship = 'V';
 	hp = 50;
 	maxHP = 50;
 	w_type = '\'';
+}
+
+void	Player::switch_key(int in_char, bool *pause, bool *exit_requested){
+	switch(in_char){
+		case 'p':
+			*pause = *pause ? false : true;
+			break;
+		case 'q':
+			*exit_requested = true;
+			break;
+		case 'w':
+			pos.y -= 1;
+			break;
+		case 's':
+			pos.y += 1;
+			break;
+		case 'a':
+			pos.x -= 1;
+			break;
+		case 'd':
+			pos.x += 1;
+			break;
+		case ' ':
+			shoot();
+			break;
+		default:
+			break;
+			}
+}
+
+void	Player::print_inf(WINDOW *wwin, int maxy){
+	mvwprintw(wwin, maxy, 14, "%s", "HP: ");
+	mvwprintw(wwin, maxy, 18, "%d", takehp());
+	mvwprintw(wwin, maxy, 23, "%s", "Score: ");
+	mvwprintw(wwin, maxy, 30, "%d", score);
+	mvwprintw(wwin, maxy, 37, "%s", "p-pause q-quit  space-shoot");
 }
 
 void	Player::set_commet(){
@@ -72,6 +109,7 @@ void	Player::shooting(){
 			{
 				if(b[i].posx == commet[i_com].x && (commet[i_com].y == b[i].posy || b[i].posy + 1 == commet[i_com].y))
 				{
+					score += 50;
 					mvaddch(b[i].posy, b[i].posx, ' ');
 					b[i].posy = -1;
 					b[i].posx = -1;
@@ -138,9 +176,21 @@ int Player::change_commet(void){
 	{
 		cX = commet[i].x;
 		cY = commet[i].y;
-		if(cX == pos_x && cY == pos_y)
-			return 0;
-		if(cY > 0 && cY < maxy - 1 && cX > 0 && cX < maxx -1){
+		if(cX == pos_x && (cY == pos_y || cY - 1 == pos_y ))
+		{
+			if(hp > 10){				
+				score -= 50;
+				score = score < 0 ? 0 : score;
+				mvaddch(cY, cX, ' ');
+				hp -=10;
+			}
+			else
+			{
+				hp = 0;
+				return 0;
+			}
+		}
+		else if(cY > 0 && cY < maxy - 1 && cX > 0 && cX < maxx -1){
 			mvaddch(commet[i].y, commet[i].x, '*');
 		}
 		i++;
@@ -148,9 +198,6 @@ int Player::change_commet(void){
 	attroff(COLOR_PAIR(1));
 	usleep(45000);
 	return 1;
-	// refresh();
-	// box(win,0,0);
-	// usleep(45000);//level up
 }
 
 Player::Player(const Player &pl) {
@@ -199,19 +246,12 @@ void Player::change_pos(void){
 		refresh();
 	}
 }
-void Player::takeDamage(int dam) {
-	if (dam < this->hp)
-		this->hp -= dam;
-	else
-	{
-		//game over
-	}
-}
+
 
 void Player::takeHP(int hp) {
 	this->hp = (hp + this->hp >= maxHP) ? maxHP : this->hp + hp;
 }
 
-int Player::doDamage() {
-	return (w_dam);
+int Player::takehp() {
+	return (hp);
 }

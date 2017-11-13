@@ -10,8 +10,8 @@
 # include <stdlib.h>
 # include "Player.hpp"
 # define DOTS_NUM 7
+# include <sys/time.h>
 
-// #include <panel.h>
 typedef struct {
 	unsigned x;
 	unsigned y;
@@ -49,20 +49,6 @@ public:
 
 	int 	win_OK(void);
 	void	set_commet(void);
-};
-
-
-class Ship {
-public:
-	int hp;
-	int dam;
-	char w_type;
-	v2i pos;
-	Ship();
-	Ship(const Ship &sh);
-	Ship(int hp, char w);
-	virtual ~Ship();
-	Ship &operator=(Ship &sh);
 };
 
 #endif

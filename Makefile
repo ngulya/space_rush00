@@ -5,7 +5,7 @@ FLG		= -Wall -Werror -Wextra
 
 SRC		= main.cpp Game.cpp Player.cpp Bullet.cpp
 
-ATTR	= -lncurses -lpanel
+ATTR	= -lncurses
 
 OBJ		= $(SRC:.cpp=.o)
 
